@@ -63,6 +63,12 @@ set nobackup
 set nowb
 set noswapfile
 
+" Enable syntax highlighting.
+syntax enable
+
+" Enable filetype plugins.
+filetype plugin on
+filetype indent on
 
 " Make moving around tabs and windows work like tmux.
 
