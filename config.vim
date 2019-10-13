@@ -33,6 +33,8 @@ set expandtab
 set smarttab
 " Tabs should look like 2 spaces.
 set tabstop=2
+" Indents should be 2 spaces.
+set shiftwidth=2
 
 " Auto-indent and smart indent can help for unknown file types.
 set ai
