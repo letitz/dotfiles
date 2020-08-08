@@ -10,8 +10,6 @@
 
 " Always show the current cursor position.
 set ruler
-" Show the 80 character column.
-set colorcolumn=80
 " Show line numbers.
 set number
 
@@ -41,6 +39,12 @@ set si "Smart indent
 set wrap "Wrap lines
 
 
+" Enable syntax highlighting per file-type.
+syntax enable
+filetype plugin on
+filetype indent on
+
+
 " Performance/misc options.
 
 " Don't make annoying sounds on errors.
@@ -62,13 +66,6 @@ set ffs=unix,dos,mac
 set nobackup
 set nowb
 set noswapfile
-
-" Enable syntax highlighting.
-syntax enable
-
-" Enable filetype plugins.
-filetype plugin on
-filetype indent on
 
 " Make moving around tabs and windows work like tmux.
 
