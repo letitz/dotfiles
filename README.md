@@ -39,8 +39,10 @@ $ ln -s ~/dotfiles/tmux.conf ~/.tmux.conf
 
 ## Configure gnome-terminal
 
+Install the [Hack font](https://github.com/source-foundry/Hack).
+
 Run the following command:
 
 ```sh
-$ ~/dotfiles/style-gnome-terminal.sh gruvbox8
+$ ~/dotfiles/style-gnome-terminal.sh styles/gruvbox8.conf
 ```
