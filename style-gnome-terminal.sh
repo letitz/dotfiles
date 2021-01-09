@@ -282,7 +282,7 @@ function choose_profile() {
   if [ "${NUM_PROFILES}" -eq 1 ]; then
     PROFILE="${PROFILES[0]}"
     PROFILE_NAME=$(profile_get_name "${PROFILE}")
-    log "Found single gnome-terminal profile ${PROFILE_NAME}, using it."
+    log "Found single gnome-terminal profile named '${PROFILE_NAME}', using it."
     echo "${PROFILE}"
     return
   fi
