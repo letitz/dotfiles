@@ -30,3 +30,11 @@ Run the following command:
 ```sh
 $ ln -s ~/dotfiles/tmux.conf ~/.tmux.conf
 ```
+
+## Configure gnome-terminal
+
+Run the following command:
+
+```sh
+$ ~/dotfiles/style-gnome-terminal.sh gruvbox8
+```
