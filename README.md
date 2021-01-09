@@ -37,6 +37,8 @@ Run the following command:
 $ ln -s ~/dotfiles/tmux.conf ~/.tmux.conf
 ```
 
+Then in tmux, install plugins with `<prefix> - I`.
+
 ## Configure gnome-terminal
 
 Install the [Hack font](https://github.com/source-foundry/Hack).
