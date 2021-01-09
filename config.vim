@@ -34,12 +34,14 @@ set smarttab
 " Tabs should look like 2 spaces.
 set tabstop=2
 
-set ai "Auto indent
-set si "Smart indent
+" Auto-indent and smart indent can help for unknown file types.
+set ai
+set si
+
+" Wrap lines that are too long.
 set wrap "Wrap lines
 
-
-" Enable syntax highlighting per file-type.
+" Enable syntax highlighting and indentation per file-type.
 syntax enable
 filetype plugin on
 filetype indent on
