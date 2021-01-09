@@ -25,6 +25,12 @@ source ~/dotfiles/config.vim
 
 ## Configure tmux
 
+Install [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm):
+
+```sh
+$ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
+
 Run the following command:
 
 ```sh
