@@ -115,6 +115,7 @@ function config_get_ansi_colors() {
 
   ANSI_COLORS=()
   for PROPERTY in "${ANSI_COLOR_PROPERTIES[@]}"; do
+    # TODO: This does not actually die, because exit is called in a subshell.
     COLOR=$(config_get_property_or_die "${FILE}" "${PROPERTY}")
     ANSI_COLORS+=("${COLOR}")
   done
@@ -130,6 +131,11 @@ function config_get_ansi_colors() {
 #
 # In the following functions, profiles are referenced by their dconf directory
 # paths (ending in a '/' character).
+
+# profile_list
+function profile_list() {
+  dconf list "${ROOT_DCONF_DIR}" | sed 's_:\(.*\)/_\1_'
+}
 
 # profile_get_property PROFILE PROPERTY
 # Echoes the given property from the given gnome-terminal profile.
@@ -199,7 +205,7 @@ function profile_set_foreground_color() {
 # Echoes the background color for the given gnome-terminal profile.
 function profile_get_background_color() {
   PROFILE="$1"
-  profile_get_property "${PROFILE}" "background_color"
+  profile_get_property "${PROFILE}" "background-color"
 }
 
 # profile_set_background_color PROFILE VALUE
@@ -223,6 +229,21 @@ function profile_set_ansi_colors() {
   PROFILE="$1"
   VALUE="$2"
   profile_set_property "${PROFILE}" "palette" "${VALUE}"
+}
+
+# profile_dump_config PROFILE
+function profile_dump_config() {
+  PROFILE="$1"
+
+  FONT=$(profile_get_font "${PROFILE}")
+  FOREGROUND_COLOR=$(profile_get_foreground_color "${PROFILE}")
+  BACKGROUND_COLOR=$(profile_get_background_color "${PROFILE}")
+
+  # TODO: ANSI colors
+
+  echo "font = ${FONT}"
+  echo "foreground-color = ${FOREGROUND_COLOR}"
+  echo "background-color = ${BACKGROUND_COLOR}"
 }
 
 # profile_apply_config PROFILE CONFIG_FILE
@@ -300,9 +321,99 @@ function choose_profile() {
   choose_number "Choose a profile" 1 "${NUM_PROFILES}"
 }
 
+# usage ERROR
+function usage() {
+  ERROR="$1"
+
+  log "Error: ${ERROR}"
+  log
+  log "USAGE: ${PROGRAM_NAME} SUBCOMMAND"
+  log
+  log "Where SUBCOMMAND can be one of:"
+  log
+  log "  list"
+  log "    Lists the available gnome-terminal profiles."
+  log
+  log "  get [profile PROFILE_ID] PROPERTY"
+  log "    Displays the given gnome-terminal profile property."
+  log
+  log "  set [profile PROFILE_ID] PROPERTY VALUE"
+  log "    Sets the given gnome-terminal profile property to the given value."
+  log
+  log "  dump [profile PROFILE_ID]"
+  log "    Dumps the given gnome-terminal as a configuration file to stdout."
+  log
+  log "  apply [profile PROFILE_ID] FILE"
+  log "    Applies the gnome-terminal configuration file."
+  die
+}
+
+# expect_arguments COMMAND EXPECTED ACTUAL
+function expect_arguments() {
+  COMMAND="$1"
+  EXPECTED="$2"
+  ACTUAL="$3"
+
+  if [ "${ACTUAL}" -ne "${EXPECTED}" ]; then
+    die "Error: ${COMMAND} expects ${EXPECTED} arguments, got ${ACTUAL}."
+  fi
+}
+
+# subcommand_list
+function subcommand_list() {
+  expect_arguments "list" 0 $#
+
+  profile_list
+}
+
+# subcommand_get PROFILE PROPERTY
+function subcommand_get() {
+  expect_arguments "get" 1 $(($# - 1))
+
+  PROFILE="$1"
+  PROPERTY="$2"
+
+  profile_get_property "${PROFILE}" "${PROPERTY}"
+}
+
+# subcommand_set PROFILE PROPERTY VALUE
+function subcommand_set() {
+  expect_arguments "set" 2 $(($# - 1))
+
+  PROFILE="$1"
+  PROPERTY="$2"
+  VALUE="$3"
+
+  # TODO: quote the value properly
+  profile_set_property "${PROFILE}" "${PROPERTY}" "${VALUE}"
+}
+
+# subcommand_dump PROFILE
+function subcommand_dump() {
+  expect_arguments "dump" 0 $(($# - 1))
+
+  PROFILE="$1"
+
+  profile_dump_config "${PROFILE}"
+}
+
+# subcommand_apply PROFILE
+function subcommand_apply() {
+  expect_arguments "apply" 0 $(($# - 1))
+
+  PROFILE="$1"
+
+  # Copy stdin to a temporary file.
+  CONFIG_FILE=$(mktemp)
+  tee > "${CONFIG_FILE}"
+
+  # Apply the configuration file.
+  profile_apply_config "${PROFILE}" "${CONFIG_FILE}"
+}
+
 function main() {
   if [ "$#" -le 0 ]; then
-    die "USAGE: ${PROGRAM_NAME} CONFIG_FILE"
+    usage "Subcommand required."
   fi
 
   # TODO: Subcommands:
@@ -322,9 +433,48 @@ function main() {
   # gnome-terminal-configure dump [profile NAME_OR_ID]
   # gnome-terminal-configure apply [profile NAME_OR_ID]
 
-  CONFIG_FILE="$1"
-  PROFILE=$(choose_profile)
-  profile_apply_config "${PROFILE}" "${CONFIG_FILE}"
+  SUBCOMMAND="$1"
+  shift
+
+  # Validate subcommand
+  NEED_PROFILE=1
+  case "${SUBCOMMAND}" in
+    "list")
+      NEED_PROFILE=0
+      ;;
+    "get")
+      ;;
+    "set")
+      ;;
+    "dump")
+      ;;
+    "apply")
+      ;;
+    *)
+      usage "Unrecognized command '${SUBCOMMAND}'."
+      ;;
+  esac
+
+  # Commands that do not need a profile can just execute now.
+  if [ "${NEED_PROFILE}" -eq 0 ]; then
+    "subcommand_${SUBCOMMAND}" "$@"
+    return
+  fi
+
+  # Parse the optional `profile PROFILE_ID` clause if present.
+  if [ "$#" -ge 1 ] && [ "$1" == "profile" ]; then
+    if [ "$#" -eq 1 ]; then
+      usage "expected profile ID after 'profile' keyword."
+    fi
+
+    PROFILE="$2"
+    shift 2
+  else
+    PROFILE=$(choose_profile)
+  fi
+
+  # Execute the subcommand.
+  "subcommand_${SUBCOMMAND}" "${PROFILE}" "$@"
 }
 
 main "$@"
