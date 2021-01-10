@@ -6,6 +6,8 @@ set -eu
 # CONSTANTS
 # =========
 
+PROGRAM_NAME="$0"
+
 # DConf directory in which gnome-terminal profile configuration is stored.
 ROOT_DCONF_DIR='/org/gnome/terminal/legacy/profiles:/'
 
@@ -300,40 +302,25 @@ function choose_profile() {
 
 function main() {
   if [ "$#" -le 0 ]; then
-    die "USAGE: style-gnome-terminal CONFIG_FILE"
+    die "USAGE: ${PROGRAM_NAME} CONFIG_FILE"
   fi
 
   # TODO: Subcommands:
   #
-  # Profiles:
+  # gnome-terminal-configure list
   #
-  #  - profile list
-  #  - profile show NAME_OR_ID
+  # gnome-terminal-configure get [profile NAME_OR_ID] font
+  # gnome-terminal-configure get [profile NAME_OR_ID] foreground-color
+  # gnome-terminal-configure get [profile NAME_OR_ID] background-color
+  # gnome-terminal-configure get [profile NAME_OR_ID] ansi-colors
   #
-  # Styling:
+  # gnome-terminal-configure set [profile NAME_OR_ID] font FONT
+  # gnome-terminal-configure set [profile NAME_OR_ID] foreground-color COLOR
+  # gnome-terminal-configure set [profile NAME_OR_ID] background-color COLOR
+  # gnome-terminal-configure set [profile NAME_OR_ID] ansi-colors ANSI_COLORS
   #
-  # These all take an optional [profile NAME_OR_ID] clause to specify a profile
-  # by name or UUID. If unspecified, the program searches for profiles. If there
-  # exists a single profile, the program uses it. Otherwise, an interactive
-  # choice is presented to the user.
-  #
-  #  - font get
-  #  - font set FONT
-  #  - foreground-color get
-  #  - foreground-color set COLOR
-  #  - background-color get
-  #  - background-color set COLOR
-  #  - palette get
-  #  - palette set COLORS
-  #  - colorscheme show NAME
-  #  - colorscheme apply NAME
-  #
-  # The colorscheme subcommand should probably read colorschemes from files
-  # instead, for easier integration with other people's colorschemes. Otherwise
-  # all colorschemes need to be defined in this script. The main question is the
-  # file format. We'd like something easy enough to write, that does not execute
-  # arbitrary code (rules our source-ing .sh files containing variables), that
-  # does not require onerous dependencies to parse.
+  # gnome-terminal-configure dump [profile NAME_OR_ID]
+  # gnome-terminal-configure apply [profile NAME_OR_ID]
 
   CONFIG_FILE="$1"
   PROFILE=$(choose_profile)
