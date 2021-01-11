@@ -21,8 +21,15 @@ set hlsearch
 " Jump to search results as user types search query.
 set incsearch
 
+" Enable true colors. See also `:help xterm-true-color`.
+let &t_8f = "\<Esc>[38:2:%lu:%lu:%lum"
+let &t_8b = "\<Esc>[48:2:%lu:%lu:%lum"
+set termguicolors
+
+
 " Use a nice color scheme.
-colorscheme jellybeans
+colorscheme gruvbox8_hard
+set background=dark
 
 
 " Formatting options.

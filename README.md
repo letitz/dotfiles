@@ -13,9 +13,8 @@ source ~/dotfiles/prompt.sh
 
 ## Configure vim
 
-Install the jellybeans colorscheme, either by downloading `jellybeans.vim` into
-`.vim/colors/`, or by installing a plugin manager and using it to install
-jellybeans.
+Install the [gruvbox8](https://github.com/lifepillar/vim-gruvbox8) colorscheme,
+specifically the `gruvbox8_hard` variant.
 
 Then add the following to your `.vimrc`:
 
