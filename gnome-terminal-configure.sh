@@ -132,9 +132,15 @@ function config_get_ansi_colors() {
 # In the following functions, profiles are referenced by their dconf directory
 # paths (ending in a '/' character).
 
+# profile_path ID
+function profile_path() {
+  id="$1"
+  echo "${ROOT_DCONF_DIR}:${id}/"
+}
+
 # profile_list
 function profile_list() {
-  dconf list "${ROOT_DCONF_DIR}" | sed 's_:\(.*\)/_\1_'
+  dconf list "${ROOT_DCONF_DIR}" | sed -nE 's_^:(.*)/$_\1_p'
 }
 
 # profile_get_property PROFILE PROPERTY
@@ -505,7 +511,7 @@ function main() {
       usage "expected profile ID after 'profile' keyword."
     fi
 
-    PROFILE="$2"
+    PROFILE=$(profile_path "$2")
     shift 2
   else
     PROFILE=$(choose_profile)
