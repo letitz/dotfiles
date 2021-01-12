@@ -231,6 +231,61 @@ function profile_set_ansi_colors() {
   profile_set_property "${PROFILE}" "palette" "${VALUE}"
 }
 
+# ansi_colors_build_regex INDEX
+# Builds an extended regex to capture the color at INDEX as \2.
+function ansi_colors_build_regex() {
+  index="$1"
+
+  if [ "${index}" -lt 0 ] || [ "${index}" -gt 15 ]; then
+    die "Error: invalid ansi color index '${index}'."
+  fi
+
+  # Match the opening bracket, which must be the first character.
+  echo -n "^\["
+
+  # Skip the items before the target index, if any.
+  if [ "${index}" -gt 0 ]; then
+    # These all end in a trailing comma.
+    echo -n "([^,]*,){$((${index}))}"
+  else
+    # Capture nothing so that the target capture group is \2.
+    echo -n "()"
+  fi
+
+  # Capture the target group (and not the comma).
+  echo -n "([^,]*)"
+
+  # Skip the remaining items, if any.
+  if [ "${index}" -lt 15 ]; then
+    # These all start with a leading comma.
+    echo -n "(,[^,]*){$((15 - ${index}))}"
+  fi
+
+  # Match the closing bracket, which must be the last character.
+  echo '\]$'
+}
+
+# ansi_colors get "[ COLOR1, ..., COLOR16 ]" INDEX
+ansi_colors_get() {
+  colors_string="$1"
+  index="$2"
+
+  regex=$(ansi_colors_build_regex "${index}")
+  echo "${colors_string}" | \
+    sed -nE "s:${regex}:\\2:p" | \
+    sed -e "s:^ *::" -e "s: *$::"  # Remove whitespace.
+}
+
+# dump_ansi_colors "[ COLOR1, ..., COLOR16 ]"
+function dump_ansi_colors() {
+  colors_string="$1"
+
+  for i in {0..15}; do
+    echo -n "${ANSI_COLOR_PROPERTIES[$i]} = "
+    ansi_colors_get "${colors_string}" $i
+  done
+}
+
 # profile_dump_config PROFILE
 function profile_dump_config() {
   PROFILE="$1"
@@ -238,12 +293,12 @@ function profile_dump_config() {
   FONT=$(profile_get_font "${PROFILE}")
   FOREGROUND_COLOR=$(profile_get_foreground_color "${PROFILE}")
   BACKGROUND_COLOR=$(profile_get_background_color "${PROFILE}")
-
-  # TODO: ANSI colors
+  ANSI_COLORS=$(profile_get_ansi_colors "${PROFILE}")
 
   echo "font = ${FONT}"
   echo "foreground-color = ${FOREGROUND_COLOR}"
   echo "background-color = ${BACKGROUND_COLOR}"
+  dump_ansi_colors "${ANSI_COLORS}"
 }
 
 # profile_apply_config PROFILE CONFIG_FILE
@@ -415,23 +470,6 @@ function main() {
   if [ "$#" -le 0 ]; then
     usage "Subcommand required."
   fi
-
-  # TODO: Subcommands:
-  #
-  # gnome-terminal-configure list
-  #
-  # gnome-terminal-configure get [profile NAME_OR_ID] font
-  # gnome-terminal-configure get [profile NAME_OR_ID] foreground-color
-  # gnome-terminal-configure get [profile NAME_OR_ID] background-color
-  # gnome-terminal-configure get [profile NAME_OR_ID] ansi-colors
-  #
-  # gnome-terminal-configure set [profile NAME_OR_ID] font FONT
-  # gnome-terminal-configure set [profile NAME_OR_ID] foreground-color COLOR
-  # gnome-terminal-configure set [profile NAME_OR_ID] background-color COLOR
-  # gnome-terminal-configure set [profile NAME_OR_ID] ansi-colors ANSI_COLORS
-  #
-  # gnome-terminal-configure dump [profile NAME_OR_ID]
-  # gnome-terminal-configure apply [profile NAME_OR_ID]
 
   SUBCOMMAND="$1"
   shift
