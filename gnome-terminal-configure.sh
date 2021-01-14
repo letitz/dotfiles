@@ -58,8 +58,8 @@ function die() {
 #
 # The functions below allow reading config file contents.
 
-# config_get_property file property
-# Echoes the given property from the given config file.
+# config_get_roperty file property
+# Echoes the given property from the given config file, in raw form.
 function config_get_property() {
   file="$1"
   property="$2"
@@ -319,9 +319,9 @@ function profile_apply_config() {
   background_color=$(config_get_background_color "${config_file}")
   ansi_colors=$(config_get_ansi_colors "${config_file}")
 
-  profile_set_font "${profile}" "${font}"
-  profile_set_foreground_color "${profile}" "${foreground_color}"
-  profile_set_background_color "${profile}" "${background_color}"
+  profile_set_raw_font "${profile}" "${font}"
+  profile_set_raw_foreground_color "${profile}" "${foreground_color}"
+  profile_set_raw_background_color "${profile}" "${background_color}"
   profile_set_ansi_colors "${profile}" "${ansi_colors}"
 }
 
@@ -428,6 +428,18 @@ function subcommand_list() {
   profile_list
 }
 
+# unquote
+# For each line in stdin, removes the start and end single quotes.
+function unquote() {
+  sed -nE "s:^'(([^'\]|\\.)*)'$:\1:p"
+}
+
+# quote argument
+# Quotes the given argument.
+quote() {
+  printf "'%b'\n" "$1"
+}
+
 # subcommand_get profile property
 function subcommand_get() {
   expect_arguments "get" 1 $(($# - 1))
@@ -435,7 +447,23 @@ function subcommand_get() {
   profile="$1"
   property="$2"
 
-  profile_get_property "${profile}" "${property}"
+  case "${property}" in
+    "font")
+      profile_get_font "${profile}" | unquote
+      ;;
+    "foreground-color")
+      profile_get_foreground_color "${profile}" | unquote
+      ;;
+    "background-color")
+      profile_get_background_color "${profile}" | unquote
+      ;;
+    "palette")
+      profile_get_ansi_colors "${profile}"
+      ;;
+    *)
+      die "unknown profile property '${property}'"
+      ;;
+  esac
 }
 
 # subcommand_set profile property value
@@ -446,8 +474,23 @@ function subcommand_set() {
   property="$2"
   value="$3"
 
-  # TODO: quote the value properly
-  profile_set_property "${profile}" "${property}" "${value}"
+  case "${property}" in
+    "font")
+      profile_get_font "${profile}" | unquote
+      ;;
+    "foreground-color")
+      profile_get_foreground_color "${profile}" | unquote
+      ;;
+    "background-color")
+      profile_get_background_color "${profile}" | unquote
+      ;;
+    "palette")
+      profile_get_ansi_colors "${profile}"
+      ;;
+    *)
+      die "unknown profile property '${property}'"
+      ;;
+  esac
 }
 
 # subcommand_dump profile
