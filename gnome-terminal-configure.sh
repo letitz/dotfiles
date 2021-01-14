@@ -58,45 +58,45 @@ function die() {
 #
 # The functions below allow reading config file contents.
 
-# config_get_property FILE PROPERTY
+# config_get_property file property
 # Echoes the given property from the given config file.
 function config_get_property() {
-  FILE="$1"
-  PROPERTY="$2"
+  file="$1"
+  property="$2"
 
-  sed -n "s:^${PROPERTY} *= *\(\.*\):\1:p" < "${FILE}"
+  sed -n "s:^${property} *= *\(\.*\):\1:p" < "${file}"
 }
 
-# config_get_property_or_die FILE PROPERTY
+# config_get_property_or_die file property
 # config_get_property, except dies if the property is not found.
 function config_get_property_or_die() {
-  FILE="$1"
-  PROPERTY="$2"
+  file="$1"
+  property="$2"
 
-  RESULT=$(config_get_property "${FILE}" "${PROPERTY}")
-  if [ -z "$RESULT" ]; then
-    die "Error: cannot find property '${PROPERTY}' in file '${FILE}'."
+  result=$(config_get_property "${file}" "${property}")
+  if [ -z "$result" ]; then
+    die "Error: cannot find property '${property}' in file '${file}'."
   fi
 
-  echo "${RESULT}"
+  echo "${result}"
 }
 
-# config_get_font FILE
+# config_get_font file
 function config_get_font() {
-  FILE="$1"
-  config_get_property "${FILE}" "font"
+  file="$1"
+  config_get_property "${file}" "font"
 }
 
-# config_get_foreground_color FILE
+# config_get_foreground_color file
 function config_get_foreground_color() {
-  FILE="$1"
-  config_get_property "${FILE}" "foreground-color"
+  file="$1"
+  config_get_property "${file}" "foreground-color"
 }
 
-# config_get_background_color FILE
+# config_get_background_color file
 function config_get_background_color() {
-  FILE="$1"
-  config_get_property "${FILE}" "background-color"
+  file="$1"
+  config_get_property "${file}" "background-color"
 }
 
 # join_ansi_colors COLOR1 ... COLOR16
@@ -109,18 +109,18 @@ function join_ansi_colors () {
   echo "]"
 }
 
-# config_get_ansi_colors FILE
+# config_get_ansi_colors file
 function config_get_ansi_colors() {
-  FILE="$1"
+  file="$1"
 
-  ANSI_COLORS=()
-  for PROPERTY in "${ANSI_COLOR_PROPERTIES[@]}"; do
+  ansi_colors=()
+  for property in "${ANSI_COLOR_PROPERTIES[@]}"; do
     # TODO: This does not actually die, because exit is called in a subshell.
-    COLOR=$(config_get_property_or_die "${FILE}" "${PROPERTY}")
-    ANSI_COLORS+=("${COLOR}")
+    color=$(config_get_property_or_die "${file}" "${property}")
+    ansi_colors+=("${color}")
   done
 
-  join_ansi_colors "${ANSI_COLORS[@]}"
+  join_ansi_colors "${ansi_colors[@]}"
 }
 
 
@@ -143,98 +143,99 @@ function profile_list() {
   dconf list "${ROOT_DCONF_DIR}" | sed -nE 's_^:(.*)/$_\1_p'
 }
 
-# profile_get_property PROFILE PROPERTY
+# profile_get_property profile property
 # Echoes the given property from the given gnome-terminal profile.
 function profile_get_property() {
-  PROFILE="$1"
-  PROPERTY="$2"
+  profile="$1"
+  property="$2"
 
-  dconf read "${PROFILE}${PROPERTY}"
+  dconf read "${profile}${property}"
 }
 
-# profile_set_property PROFILE PROPERTY VALUE
+# profile_set_property profile property value
 # Sets the given profile's given property to the given value.
 function profile_set_property() {
-  PROFILE="$1"
-  PROPERTY="$2"
-  VALUE="$3"
+  profile="$1"
+  property="$2"
+  value="$3"
 
-  dconf write "${PROFILE}${PROPERTY}" "${VALUE}"
+  dconf write "${profile}${property}" "${value}"
 }
 
-# profile_get_name PROFILE
+
+# profile_get_name profile
 # Echoes the human-readable name for the given gnome-terminal profile.
 function profile_get_name() {
-  PROFILE="$1"
-  profile_get_property "${PROFILE}" "visible-name"
+  profile="$1"
+  profile_get_property "${profile}" "visible-name"
 }
 
-# profile_set_name PROFILE VALUE
+# profile_set_name profile value
 # Sets the human-readable name for the given gnome-terminal profile.
 function profile_set_name() {
-  PROFILE="$1"
-  VALUE="$2"
-  profile_set_property "${PROFILE}" "visible-name" "${VALUE}"
+  profile="$1"
+  value="$2"
+  profile_set_property "${profile}" "visible-name" "${value}"
 }
 
-# profile_get_font PROFILE
+# profile_get_font profile
 # Echoes the font for the given gnome-terminal profile.
 function profile_get_font() {
-  PROFILE="$1"
-  profile_get_property "${PROFILE}" "font"
+  profile="$1"
+  profile_get_property "${profile}" "font"
 }
 
-# profile_set_font PROFILE VALUE
+# profile_set_font profile value
 # Sets the font for the given gnome-terminal profile.
 function profile_set_font() {
-  PROFILE="$1"
-  VALUE="$2"
-  profile_set_property "${PROFILE}" "font" "${VALUE}"
+  profile="$1"
+  value="$2"
+  profile_set_property "${profile}" "font" "${value}"
 }
 
-# profile_get_foreground_color PROFILE
+# profile_get_foreground_color profile
 # Echoes the foreground color for the given gnome-terminal profile.
 function profile_get_foreground_color() {
-  PROFILE="$1"
-  profile_get_property "${PROFILE}" "foreground-color"
+  profile="$1"
+  profile_get_property "${profile}" "foreground-color"
 }
 
-# profile_set_foreground_color PROFILE VALUE
+# profile_set_foreground_color profile value
 # Sets the foreground color for the given gnome-terminal profile.
 function profile_set_foreground_color() {
-  PROFILE="$1"
-  VALUE="$2"
-  profile_set_property "${PROFILE}" "foreground-color" "${VALUE}"
+  profile="$1"
+  value="$2"
+  profile_set_property "${profile}" "foreground-color" "${value}"
 }
 
-# profile_get_background_color PROFILE
+# profile_get_background_color profile
 # Echoes the background color for the given gnome-terminal profile.
 function profile_get_background_color() {
-  PROFILE="$1"
-  profile_get_property "${PROFILE}" "background-color"
+  profile="$1"
+  profile_get_property "${profile}" "background-color"
 }
 
-# profile_set_background_color PROFILE VALUE
+# profile_set_background_color profile value
 # Sets the background color for the given gnome-terminal profile.
 function profile_set_background_color() {
-  PROFILE="$1"
-  VALUE="$2"
-  profile_set_property "${PROFILE}" "background-color" "${VALUE}"
+  profile="$1"
+  value="$2"
+  profile_set_property "${profile}" "background-color" "${value}"
 }
 
-# profile_get_ansi_colors PROFILE
+# profile_get_ansi_colors profile
 # Echoes the ANSI color palette for the given gnome-terminal profile.
 function profile_get_ansi_colors() {
-  PROFILE="$1"
-  profile_get_property "${PROFILE}" "palette"
+  profile="$1"
+  profile_get_property "${profile}" "palette"
 }
 
-# profile_set_ansi_colors PROFILE VALUE
+# profile_set_ansi_colors profile value
 # Sets the ANSI color palette for the given gnome-terminal profile.
 function profile_set_ansi_colors() {
-  PROFILE="$1"
-  VALUE="$2"
-  profile_set_property "${PROFILE}" "palette" "${VALUE}"
+  profile="$1"
+  value="$2"
+  profile_set_property "${profile}" "palette" "${value}"
 }
 
 # ansi_colors_build_regex INDEX
@@ -292,59 +293,59 @@ function dump_ansi_colors() {
   done
 }
 
-# profile_dump_config PROFILE
+# profile_dump_config profile
 function profile_dump_config() {
-  PROFILE="$1"
+  profile="$1"
 
-  FONT=$(profile_get_font "${PROFILE}")
-  FOREGROUND_COLOR=$(profile_get_foreground_color "${PROFILE}")
-  BACKGROUND_COLOR=$(profile_get_background_color "${PROFILE}")
-  ANSI_COLORS=$(profile_get_ansi_colors "${PROFILE}")
+  font=$(profile_get_font "${profile}")
+  foreground_color=$(profile_get_foreground_color "${profile}")
+  background_color=$(profile_get_background_color "${profile}")
+  ansi_colors=$(profile_get_ansi_colors "${profile}")
 
-  echo "font = ${FONT}"
-  echo "foreground-color = ${FOREGROUND_COLOR}"
-  echo "background-color = ${BACKGROUND_COLOR}"
-  dump_ansi_colors "${ANSI_COLORS}"
+  echo "font = ${font}"
+  echo "foreground-color = ${foreground_color}"
+  echo "background-color = ${background_color}"
+  dump_ansi_colors "${ansi_colors}"
 }
 
-# profile_apply_config PROFILE CONFIG_FILE
+# profile_apply_config profile config_file
 # Applies the given configuration to the given gnome-terminal profile.
 function profile_apply_config() {
-  PROFILE="$1"
-  CONFIG_FILE="$2"
+  profile="$1"
+  config_file="$2"
 
-  FONT=$(config_get_font "${CONFIG_FILE}")
-  FOREGROUND_COLOR=$(config_get_foreground_color "${CONFIG_FILE}")
-  BACKGROUND_COLOR=$(config_get_background_color "${CONFIG_FILE}")
-  ANSI_COLORS=$(config_get_ansi_colors "${CONFIG_FILE}")
+  font=$(config_get_font "${config_file}")
+  foreground_color=$(config_get_foreground_color "${config_file}")
+  background_color=$(config_get_background_color "${config_file}")
+  ansi_colors=$(config_get_ansi_colors "${config_file}")
 
-  profile_set_font "${PROFILE}" "${FONT}"
-  profile_set_foreground_color "${PROFILE}" "${FOREGROUND_COLOR}"
-  profile_set_background_color "${PROFILE}" "${BACKGROUND_COLOR}"
-  profile_set_ansi_colors "${PROFILE}" "${ANSI_COLORS}"
+  profile_set_font "${profile}" "${font}"
+  profile_set_foreground_color "${profile}" "${foreground_color}"
+  profile_set_background_color "${profile}" "${background_color}"
+  profile_set_ansi_colors "${profile}" "${ansi_colors}"
 }
 
 # INTERACTIVE USE
 # ===============
 
-# choose_number BASE_PROMPT MIN MAX
-# Asks the user to choose a number between MIN and MAX, inclusive.
-# BASE_PROMPT should not end in a newline.
+# choose_number prompt_base min max
+# Asks the user to choose a number between min and max, inclusive.
+# prompt_base should not end in a newline.
 function choose_number() {
-  PROMPT="$1"
-  MIN_NUMBER="$2"
-  MAX_NUMBER="$3"
+  prompt_base="$1"
+  min_number="$2"
+  max_number="$3"
 
   while true; do
-    read -p "$1 [${MIN_NUMBER} to ${MAX_NUMBER}]: " CHOSEN_NUMBER
-    if [ "${CHOSEN_NUMBER}" -lt "${MIN_NUMBER}" ]; then
+    read -p "${prompt_base} [${min_number} to ${max_number}]: " chosen_number
+    if [ "${chosen_number}" -lt "${min_number}" ]; then
       continue
     fi
-    if [ "${CHOSEN_NUMBER}" -gt "${MAX_NUMBER}" ]; then
+    if [ "${chosen_number}" -gt "${max_number}" ]; then
       continue
     fi
 
-    echo "${CHOSEN_NUMBER}"
+    echo "${chosen_number}"
     break
   done
 }
@@ -353,33 +354,33 @@ function choose_number() {
 # Echoes the path to a valid gnome-terminal profile to modify.
 function choose_profile() {
   # Build an array of profile subdirectories.
-  PROFILES=()
-  for PROFILE_SUBDIR in $(dconf list "${ROOT_DCONF_DIR}"); do
-    PROFILES+=("${ROOT_DCONF_DIR}${PROFILE_SUBDIR}")
+  profiles=()
+  for profile_subdir in $(dconf list "${ROOT_DCONF_DIR}"); do
+    profiles+=("${ROOT_DCONF_DIR}${profile_subdir}")
   done
-  NUM_PROFILES="${#PROFILES[@]}"
+  num_profiles="${#profiles[@]}"
 
-  if [ "${NUM_PROFILES}" -eq 0 ]; then
+  if [ "${num_profiles}" -eq 0 ]; then
     die "Error: found no gnome-terminal profiles to style."
   fi
 
-  if [ "${NUM_PROFILES}" -eq 1 ]; then
-    PROFILE="${PROFILES[0]}"
-    PROFILE_NAME=$(profile_get_name "${PROFILE}")
-    log "Found single gnome-terminal profile named '${PROFILE_NAME}', using it."
-    echo "${PROFILE}"
+  if [ "${num_profiles}" -eq 1 ]; then
+    profile="${profiles[0]}"
+    profile_name=$(profile_get_name "${profile}")
+    log "Found single gnome-terminal profile named '${profile_name}', using it."
+    echo "${profile}"
     return
   fi
 
   log "Available gnome-terminal profiles:"
 
-  for i in $(seq 1 "${NUM_PROFILES}"); do
-    PROFILE="${PROFILES[$(($i - 1))]}"
-    PROFILE_NAME=$(profile_get_name "${PROFILE}")
-    log "  #$i: ${PROFILE_NAME}"
+  for i in $(seq 1 "${num_profiles}"); do
+    profile="${profiles[$(($i - 1))]}"
+    profile_name=$(profile_get_name "${profile}")
+    log "  #$i: ${profile_name}"
   done
 
-  choose_number "Choose a profile" 1 "${NUM_PROFILES}"
+  choose_number "Choose a profile" 1 "${num_profiles}"
 }
 
 # usage ERROR
@@ -409,14 +410,14 @@ function usage() {
   die
 }
 
-# expect_arguments COMMAND EXPECTED ACTUAL
+# expect_arguments command expected actual
 function expect_arguments() {
-  COMMAND="$1"
-  EXPECTED="$2"
-  ACTUAL="$3"
+  command="$1"
+  expected="$2"
+  actual="$3"
 
-  if [ "${ACTUAL}" -ne "${EXPECTED}" ]; then
-    die "Error: ${COMMAND} expects ${EXPECTED} arguments, got ${ACTUAL}."
+  if [ "${actual}" -ne "${expected}" ]; then
+    die "Error: ${command} expects ${expected} arguments, got ${actual}."
   fi
 }
 
@@ -427,49 +428,49 @@ function subcommand_list() {
   profile_list
 }
 
-# subcommand_get PROFILE PROPERTY
+# subcommand_get profile property
 function subcommand_get() {
   expect_arguments "get" 1 $(($# - 1))
 
-  PROFILE="$1"
-  PROPERTY="$2"
+  profile="$1"
+  property="$2"
 
-  profile_get_property "${PROFILE}" "${PROPERTY}"
+  profile_get_property "${profile}" "${property}"
 }
 
-# subcommand_set PROFILE PROPERTY VALUE
+# subcommand_set profile property value
 function subcommand_set() {
   expect_arguments "set" 2 $(($# - 1))
 
-  PROFILE="$1"
-  PROPERTY="$2"
-  VALUE="$3"
+  profile="$1"
+  property="$2"
+  value="$3"
 
   # TODO: quote the value properly
-  profile_set_property "${PROFILE}" "${PROPERTY}" "${VALUE}"
+  profile_set_property "${profile}" "${property}" "${value}"
 }
 
-# subcommand_dump PROFILE
+# subcommand_dump profile
 function subcommand_dump() {
   expect_arguments "dump" 0 $(($# - 1))
 
-  PROFILE="$1"
+  profile="$1"
 
-  profile_dump_config "${PROFILE}"
+  profile_dump_config "${profile}"
 }
 
-# subcommand_apply PROFILE
+# subcommand_apply profile
 function subcommand_apply() {
   expect_arguments "apply" 0 $(($# - 1))
 
-  PROFILE="$1"
+  profile="$1"
 
   # Copy stdin to a temporary file.
-  CONFIG_FILE=$(mktemp)
-  tee > "${CONFIG_FILE}"
+  config_file=$(mktemp)
+  tee > "${config_file}"
 
   # Apply the configuration file.
-  profile_apply_config "${PROFILE}" "${CONFIG_FILE}"
+  profile_apply_config "${profile}" "${config_file}"
 }
 
 function main() {
@@ -477,14 +478,14 @@ function main() {
     usage "Subcommand required."
   fi
 
-  SUBCOMMAND="$1"
+  subcommand="$1"
   shift
 
   # Validate subcommand
-  NEED_PROFILE=1
-  case "${SUBCOMMAND}" in
+  need_profile=1
+  case "${subcommand}" in
     "list")
-      NEED_PROFILE=0
+      need_profile=0
       ;;
     "get")
       ;;
@@ -495,13 +496,13 @@ function main() {
     "apply")
       ;;
     *)
-      usage "Unrecognized command '${SUBCOMMAND}'."
+      usage "Unrecognized command '${subcommand}'."
       ;;
   esac
 
   # Commands that do not need a profile can just execute now.
-  if [ "${NEED_PROFILE}" -eq 0 ]; then
-    "subcommand_${SUBCOMMAND}" "$@"
+  if [ "${need_profile}" -eq 0 ]; then
+    "subcommand_${subcommand}" "$@"
     return
   fi
 
@@ -511,14 +512,14 @@ function main() {
       usage "expected profile ID after 'profile' keyword."
     fi
 
-    PROFILE=$(profile_path "$2")
+    profile=$(profile_path "$2")
     shift 2
   else
-    PROFILE=$(choose_profile)
+    profile=$(choose_profile)
   fi
 
   # Execute the subcommand.
-  "subcommand_${SUBCOMMAND}" "${PROFILE}" "$@"
+  "subcommand_${subcommand}" "${profile}" "$@"
 }
 
 main "$@"
