@@ -58,8 +58,8 @@ function die() {
 #
 # The functions below allow reading config file contents.
 
-# config_get_roperty file property
-# Echoes the given property from the given config file, in raw form.
+# config_get_property file property
+# Echoes the given property from the given config file.
 function config_get_property() {
   file="$1"
   property="$2"
@@ -319,9 +319,9 @@ function profile_apply_config() {
   background_color=$(config_get_background_color "${config_file}")
   ansi_colors=$(config_get_ansi_colors "${config_file}")
 
-  profile_set_raw_font "${profile}" "${font}"
-  profile_set_raw_foreground_color "${profile}" "${foreground_color}"
-  profile_set_raw_background_color "${profile}" "${background_color}"
+  profile_set_font "${profile}" "${font}"
+  profile_set_foreground_color "${profile}" "${foreground_color}"
+  profile_set_background_color "${profile}" "${background_color}"
   profile_set_ansi_colors "${profile}" "${ansi_colors}"
 }
 
@@ -434,10 +434,18 @@ function unquote() {
   sed -nE "s:^'(([^'\]|\\.)*)'$:\1:p"
 }
 
-# quote argument
+# quote string
 # Quotes the given argument.
 quote() {
-  printf "'%b'\n" "$1"
+  string="$1"
+
+  # Surround with single quotes.
+  # Escape all enclosed quotes with a backslash. We need two backslashes for a
+  # reason that is not immediately clear to me. Something something the string
+  # is unescaped afterwards?
+  echo -n "'"
+  echo -n "${string}" | sed "s:':\\\\':g"
+  echo "'"
 }
 
 # subcommand_get profile property
@@ -476,13 +484,16 @@ function subcommand_set() {
 
   case "${property}" in
     "font")
-      profile_get_font "${profile}" | unquote
+      quoted=$(quote "${value}")
+      profile_set_font "${profile}" "${quoted}"
       ;;
     "foreground-color")
-      profile_get_foreground_color "${profile}" | unquote
+      quoted=$(quote "${value}")
+      profile_set_foreground_color "${profile}" "${quoted}"
       ;;
     "background-color")
-      profile_get_background_color "${profile}" | unquote
+      quoted=$(quote "${value}")
+      profile_set_background_color "${profile}" "${quoted}"
       ;;
     "palette")
       profile_get_ansi_colors "${profile}"
