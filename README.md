@@ -42,8 +42,5 @@ Then in tmux, install plugins with `<prefix> - I`.
 
 Install the [Hack font](https://github.com/source-foundry/Hack).
 
-Run the following command:
-
-```sh
-$ ~/dotfiles/style-gnome-terminal.sh styles/gruvbox8.conf
-```
+Apply the gruvbox8 theme using
+[gnome-terminal-configure](https://github.com/letitz/gnome-terminal-configure).
