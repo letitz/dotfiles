@@ -7,6 +7,10 @@ First, clone this repository into `~/dotfiles`.
 Add the following to your .bashrc:
 
 ```sh
+# Use vim for editing.
+export VISUAL="vim"
+export EDITOR="${VISUAL}"
+
 # Better prompt.
 source ~/dotfiles/prompt.sh
 ```
