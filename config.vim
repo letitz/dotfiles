@@ -61,9 +61,9 @@ filetype indent on
 " Performance/misc options.
 
 " Don't make annoying sounds on errors.
-set noerrorbells
-set novisualbell
-set t_vb=
+set noerrorbells " Errors such as setting inexistent options do not ding.
+set visualbell " Errors such as pressing `Esc` in normal mode use visual bell.
+set t_vb= " Visual bell does nothing. Result: silent `Esc` in normal mode.
 set tm=500
 
 " Don't redraw while executing macros for performance.
