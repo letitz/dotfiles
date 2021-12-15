@@ -10,6 +10,8 @@
 
 " Always show the current cursor position.
 set ruler
+" Show the 80 character column.
+set colorcolumn=80
 " Show line numbers.
 set number
 
