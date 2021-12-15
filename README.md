@@ -14,7 +14,12 @@ source ~/dotfiles/prompt.sh
 ## Configure vim
 
 Install the [gruvbox8](https://github.com/lifepillar/vim-gruvbox8) colorscheme,
-specifically the `gruvbox8_hard` variant.
+specifically the `gruvbox8_hard` variant:
+
+```sh
+$ curl -Lo ~/.vim/colors/gruvbox8_hard.vim --create-dirs \
+  https://raw.githubusercontent.com/lifepillar/vim-gruvbox8/master/colors/gruvbox8_hard.vim
+```
 
 Then add the following to your `.vimrc`:
 
@@ -36,7 +41,7 @@ Run the following command:
 $ ln -s ~/dotfiles/tmux.conf ~/.tmux.conf
 ```
 
-Then in tmux, install plugins with `<prefix> - I`.
+Then run tmux, and type `<Ctrl>-A I` to install plugins.
 
 ## Configure gnome-terminal
 
