@@ -2,6 +2,13 @@
 
 First, clone this repository into `~/dotfiles`.
 
+If your terminal does not support true colors, but supports 256 colors (as is
+for example the case with mosh 1.3.2), switch to the `lesscolors` branch:
+
+```sh
+$ git switch lesscolors
+```
+
 ## Configure bash
 
 Add the following to your .bashrc:
