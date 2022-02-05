@@ -47,6 +47,14 @@ $ ln -s ~/dotfiles/tmux.conf ~/.tmux.conf
 
 Then run tmux, and type `<Ctrl>-A I` to install plugins.
 
+If the prompt in tmux is not colored, and backspace does not work, the system
+might be missing the `tmux` terminfo file. On Debian-based distros, that file is
+provided by the `ncurses-term` package:
+
+```sh
+$ sudo apt install ncurses-term
+```
+
 ## Configure gnome-terminal
 
 Install the [Hack font](https://github.com/source-foundry/Hack).
