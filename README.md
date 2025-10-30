@@ -40,6 +40,21 @@ Then configure vim to use the configs in this repo by adding the following to
 set runtimepath^=~/code/dotfiles/vim
 ```
 
+## Configure neovim
+
+Use the `nvim` subdirectory as your neovim configuration:
+
+```sh
+$ ln -s ~/code/dotfiles/nvim ~/.config/nvim
+```
+
+Install the `gruvbox8` theme for neovim:
+
+```sh
+$ curl -Lo ~/.local/share/nvim/site/colors/gruvbox8_hard.vim --create-dirs \
+  https://raw.githubusercontent.com/lifepillar/vim-gruvbox8/master/colors/gruvbox8_hard.vim
+```
+
 ## Configure tmux
 
 Install [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm):
