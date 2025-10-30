@@ -32,10 +32,12 @@ $ curl -Lo ~/.vim/colors/gruvbox8_hard.vim --create-dirs \
   https://raw.githubusercontent.com/lifepillar/vim-gruvbox8/master/colors/gruvbox8_hard.vim
 ```
 
-Then add the following to your `.vimrc`:
+Then configure vim to use the configs in this repo by adding the following to
+`~/.vimrc`:
 
 ```
-source ~/dotfiles/config.vim
+" Load configuration plugins from central dotfiles.
+set runtimepath^=~/code/dotfiles/vim
 ```
 
 ## Configure tmux
