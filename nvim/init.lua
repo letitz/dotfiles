@@ -4,7 +4,8 @@
 vim.cmd("set runtimepath^=~/code/dotfiles/vim")
 
 -- Bootstrap mini.nvim
-local mini_path = vim.fn.stdpath('data') .. '/site/pack/deps/start/mini.nvim'
+local deps_path = vim.fn.stdpath('data') .. '/site/pack/deps'
+local mini_path = deps_path .. '/start/mini.nvim'
 if not vim.loop.fs_stat(mini_path) then
   vim.cmd('echo "Installing `mini.nvim`" | redraw')
   local clone_cmd = {
@@ -97,4 +98,23 @@ require("mason-lspconfig").setup({
 -- `vim.lsp.config` in neovim >= 0.11.
 MiniDeps.add({
   source = 'neovim/nvim-lspconfig',
+})
+
+MiniDeps.add({
+  source = 'https://gn.googlesource.com/gn',
+
+  hooks = {
+    post_install = function(args)
+      -- The gn vim plugin lives in the `gn` git repo, under `misc/vim`. Create
+      -- a symlink in the right place so that it appears as a standalone plugin
+      -- called `gn.vim`.
+      local gn_vim_path = args.path .. '.vim'
+      if not vim.loop.fs_stat(gn_vim_path) then
+        vim.uv.fs_symlink(args.path .. '/misc/vim', gn_vim_path)
+      end
+
+      -- Tell nvim that there is a new plugin to load.
+      vim.cmd("packadd gn.vim")
+    end,
+  },
 })
