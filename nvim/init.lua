@@ -61,3 +61,40 @@ require('nvim-treesitter.configs').setup({
     "yaml",
   },
 })
+
+-- Set up LSP stuff.
+
+-- Mason is a package manager for installing helpers, e.g. language servers.
+MiniDeps.add({
+  source = 'mason-org/mason.nvim',
+
+  -- Mason 2.x uses `vim.lsp.config`, introduced in neovim 0.11.
+  -- Docs recommend sticking with the v1.x branch for neovim <= 0.10.
+  checkout = 'v1.x',
+})
+
+require('mason').setup()
+
+-- mason-lspconfig provides glue between lspconfig and mason.
+MiniDeps.add({
+  source = 'mason-org/mason-lspconfig.nvim',
+
+  -- Same as mason.
+  checkout = 'v1.x',
+})
+
+-- Ensure a basic set of language servers are installed by Mason.
+require("mason-lspconfig").setup({
+  ensure_installed = {
+    "lua_ls",
+    "pyright",
+    "rust_analyzer",
+  },
+})
+
+-- Provides configuration files for neovim x most language servers.
+-- Also provides an `lspconfig` Lua framework that is replaced by
+-- `vim.lsp.config` in neovim >= 0.11.
+MiniDeps.add({
+  source = 'neovim/nvim-lspconfig',
+})
