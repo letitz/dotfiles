@@ -20,7 +20,7 @@ setup() {
 # Helper to assert file existence
 assert_exists() {
     if [[ ! -e "${1}" ]] && [[ ! -L "${1}" ]]; then
-        echo "FAIL: ${1} does not exist"
+        echo "[FAIL] ${1} does not exist"
         exit 1
     fi
 }
@@ -31,13 +31,13 @@ assert_symlink() {
     local expected_target="${2}"
     assert_exists "${link}"
     if [[ ! -L "${link}" ]]; then
-        echo "FAIL: ${link} is not a symlink"
+        echo "[FAIL] ${link} is not a symlink"
         exit 1
     fi
     local actual_target
     actual_target=$(readlink "${link}")
     if [[ "${actual_target}" != "${expected_target}" ]]; then
-        echo "FAIL: Symlink ${link} points to ${actual_target}, expected ${expected_target}"
+        echo "[FAIL] Symlink ${link} points to ${actual_target}, expected ${expected_target}"
         exit 1
     fi
 }
@@ -48,7 +48,7 @@ assert_contains() {
     local string="${2}"
     assert_exists "${file}"
     if ! grep -qF "${string}" "${file}"; then
-        echo "FAIL: ${file} does not contain '${string}'"
+        echo "[FAIL] ${file} does not contain '${string}'"
         exit 1
     fi
 }
@@ -59,7 +59,7 @@ assert_contains() {
 # Asserts that all bash and vim blocks are appended, colorschemes are downloaded,
 # and symlinks are created correctly.
 test_clean_installation() {
-    echo "Running Test Case: Clean Installation..."
+    echo "[TEST] Clean Installation"
     setup
 
     # Run install
@@ -75,14 +75,14 @@ test_clean_installation() {
     assert_exists "${TEST_HOME}/.tmux/plugins/tpm"
     assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
 
-    echo "PASS: Clean Installation"
+    echo "[PASS] Clean Installation"
 }
 
 # Verifies that the temporary installation directories created in /tmp are
 # successfully deleted upon completion, and that any pre-existing stale
 # directories with matching prefixes are swept away.
 test_temp_dir_cleanup() {
-    echo "Running Test Case: Temp Dir Cleanup..."
+    echo "[TEST] Temp Dir Cleanup"
     setup
 
     # Create a fake stale directory to test sweeping
@@ -96,20 +96,19 @@ test_temp_dir_cleanup() {
     # Verify that NO temporary directories matching /tmp/dotfiles-install.* exist
     for temp_dir in /tmp/dotfiles-install.*; do
         if [[ -d "${temp_dir}" ]]; then
-            echo "FAIL: Found uncleared temporary directory: ${temp_dir}"
+            echo "[FAIL] Found uncleared temporary directory: ${temp_dir}"
             exit 1
         fi
     done
-    echo "Verified: All temporary directories matching /tmp/dotfiles-install.* were successfully cleaned up."
 
-    echo "PASS: Temp Dir Cleanup"
+    echo "[PASS] Temp Dir Cleanup"
 }
 
 # Verifies that the installation script is idempotent. Running it a second
 # time on a previously configured environment should succeed without altering
 # correct targets, duplicating lines, or throwing errors.
 test_idempotency() {
-    echo "Running Test Case: Idempotency..."
+    echo "[TEST] Idempotency"
     setup
 
     # Run 1: Clean Installation
@@ -122,14 +121,14 @@ test_idempotency() {
     assert_symlink "${TEST_HOME}/.config/nvim" "${TEST_DIR}/nvim"
     assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
 
-    echo "PASS: Idempotency"
+    echo "[PASS] Idempotency"
 }
 
 # Verifies that the backup functionality works correctly. If a file or symlink
 # exists at a target location (e.g., ~/.tmux.conf) but points to a different
 # source, the script should back it up to *.bak and create the correct symlink.
 test_backup() {
-    echo "Running Test Case: Backup..."
+    echo "[TEST] Backup"
     setup
 
     # Run 1: Clean Installation
@@ -146,14 +145,14 @@ test_backup() {
     assert_symlink "${TEST_HOME}/.tmux.conf.bak" "/dev/null"
     assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
 
-    echo "PASS: Backup"
+    echo "[PASS] Backup"
 }
 
 # Verifies the script's safety guardrails. If a backup target (e.g. *.bak) already
 # exists when the script needs to perform a backup, the script should abort safely
 # with an exit code of 1 to prevent data loss (overwriting the user's existing backup).
 test_backup_safety() {
-    echo "Running Test Case: Backup Safety..."
+    echo "[TEST] Backup Safety"
     setup
 
     # Run 1: Clean Installation
@@ -170,13 +169,11 @@ test_backup_safety() {
 
     # Run 3: Install again, it should FAIL because .tmux.conf.bak already exists
     if HOME="${TEST_HOME}" "${TEST_DIR}/install.sh" >/dev/null 2>&1; then
-        echo "FAIL: install.sh should have failed because backup already exists"
+        echo "[FAIL] install.sh should have failed because backup already exists"
         exit 1
-    else
-        echo "Expected failure occurred."
     fi
 
-    echo "PASS: Backup Safety"
+    echo "[PASS] Backup Safety"
 }
 
 # --- Main Function ---
@@ -184,8 +181,8 @@ test_backup_safety() {
 # Orchestrates the test suite execution. Runs all isolated test cases in sequence,
 # performs final cleanup, and reports.
 main() {
-    echo "Starting install.sh tests..."
-    echo "Using test HOME: ${TEST_HOME}"
+    echo "[INFO] Starting install.sh tests"
+    echo "[INFO] Using test HOME: ${TEST_HOME}"
 
     # Run isolated test cases
     test_clean_installation
@@ -197,7 +194,7 @@ main() {
     # Final sandbox cleanup
     rm -rf "${TEST_HOME}"
 
-    echo "ALL TESTS PASSED!"
+    echo "[PASS] ALL TESTS PASSED!"
 }
 
 main "$@"
