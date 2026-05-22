@@ -1,0 +1,10 @@
+#!/bin/bash -eu
+
+main() {
+  local dir="$HOME/code/$1"
+
+  tmux neww -c "$dir" nvim
+  tmux neww -c "$dir"
+}
+
+main "$@"

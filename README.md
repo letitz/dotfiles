@@ -85,3 +85,11 @@ Install the [Hack font](https://github.com/source-foundry/Hack).
 
 Apply the gruvbox8 theme using
 [gnome-terminal-configure](https://github.com/letitz/gnome-terminal-configure).
+
+## Add utility scripts
+
+Add `bin/` to your `$PATH`. Edit your `.bashrc`:
+
+```
+export PATH=$PATH:$HOME/dotfiles/bin
+```
