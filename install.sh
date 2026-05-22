@@ -255,7 +255,7 @@ configure_tmux() {
     local TPM_DIR="${HOME}/.tmux/plugins/tpm"
     if [[ ! -d "${TPM_DIR}" ]]; then
         echo "[+] Cloning Tmux Plugin Manager..."
-        git clone https://github.com/tmux-plugins/tpm "${TPM_DIR}"
+        git clone --quiet https://github.com/tmux-plugins/tpm "${TPM_DIR}"
     else
         echo "[i] TPM already installed."
     fi
