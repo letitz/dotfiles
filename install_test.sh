@@ -57,10 +57,32 @@ assert_contains() {
 
 # Verifies a clean installation of the dotfiles setup on a fresh user environment.
 # Asserts that all bash and vim blocks are appended, colorschemes are downloaded,
-# and symlinks are created correctly. Also asserts that the temporary installation
-# directory inside /tmp is successfully deleted after execution.
+# and symlinks are created correctly.
 test_clean_installation() {
     echo "Running Test Case: Clean Installation..."
+    setup
+
+    # Run install
+    HOME="${TEST_HOME}" "${TEST_DIR}/install.sh" >/dev/null
+
+    # Assert expected files exist and contain setup markers
+    assert_contains "${TEST_HOME}/.bashrc" "# --- Added by dotfiles install.sh (START) ---"
+    assert_contains "${TEST_HOME}/.bashrc" "source ${TEST_DIR}/prompt.sh"
+    assert_contains "${TEST_HOME}/.vimrc" "set runtimepath^=${TEST_DIR}/vim"
+    assert_exists "${TEST_HOME}/.vim/colors/gruvbox8_hard.vim"
+    assert_symlink "${TEST_HOME}/.config/nvim" "${TEST_DIR}/nvim"
+    assert_exists "${TEST_HOME}/.local/share/nvim/site/colors/gruvbox8_hard.vim"
+    assert_exists "${TEST_HOME}/.tmux/plugins/tpm"
+    assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
+
+    echo "PASS: Clean Installation"
+}
+
+# Verifies that the temporary installation directories created in /tmp are
+# successfully deleted upon completion, and that any pre-existing stale
+# directories with matching prefixes are swept away.
+test_temp_dir_cleanup() {
+    echo "Running Test Case: Temp Dir Cleanup..."
     setup
 
     # Create a fake stale directory to test sweeping
@@ -80,17 +102,7 @@ test_clean_installation() {
     done
     echo "Verified: All temporary directories matching /tmp/dotfiles-install.* were successfully cleaned up."
 
-    # Assert expected files exist and contain setup markers
-    assert_contains "${TEST_HOME}/.bashrc" "# --- Added by dotfiles install.sh (START) ---"
-    assert_contains "${TEST_HOME}/.bashrc" "source ${TEST_DIR}/prompt.sh"
-    assert_contains "${TEST_HOME}/.vimrc" "set runtimepath^=${TEST_DIR}/vim"
-    assert_exists "${TEST_HOME}/.vim/colors/gruvbox8_hard.vim"
-    assert_symlink "${TEST_HOME}/.config/nvim" "${TEST_DIR}/nvim"
-    assert_exists "${TEST_HOME}/.local/share/nvim/site/colors/gruvbox8_hard.vim"
-    assert_exists "${TEST_HOME}/.tmux/plugins/tpm"
-    assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
-
-    echo "PASS: Clean Installation"
+    echo "PASS: Temp Dir Cleanup"
 }
 
 # Verifies that the installation script is idempotent. Running it a second
@@ -177,6 +189,7 @@ main() {
 
     # Run isolated test cases
     test_clean_installation
+    test_temp_dir_cleanup
     test_idempotency
     test_backup
     test_backup_safety
