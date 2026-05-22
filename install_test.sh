@@ -3,7 +3,7 @@
 set -e
 
 # Get the directory of this script
-TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 TEST_HOME="$TEST_DIR/test_home_dir"
 
 # --- Sandbox Helpers ---
@@ -61,14 +61,14 @@ assert_contains() {
 test_clean_installation() {
     echo "Running Test Case: Clean Installation..."
     setup
-    
+
     # Create a fake stale directory to test sweeping
     local stale_dir="/tmp/dotfiles-install.stale-test"
     mkdir -p "$stale_dir"
     touch "$stale_dir/stale_file"
 
     # Run install
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Verify that NO temporary directories matching /tmp/dotfiles-install.* exist
     for temp_dir in /tmp/dotfiles-install.*; do
@@ -98,12 +98,12 @@ test_clean_installation() {
 test_idempotency() {
     echo "Running Test Case: Idempotency..."
     setup
-    
+
     # Run 1: Clean Installation
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Run 2: Idempotent execution
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Verify everything is still correct
     assert_symlink "$TEST_HOME/.config/nvim" "$TEST_DIR/nvim"
@@ -118,16 +118,16 @@ test_idempotency() {
 test_backup() {
     echo "Running Test Case: Backup..."
     setup
-    
+
     # Run 1: Clean Installation
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Modify a symlink to point to wrong place
     rm "$TEST_HOME/.tmux.conf"
     ln -s /dev/null "$TEST_HOME/.tmux.conf"
 
     # Run 2: Install again to trigger backup and repair
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Verify backup was created and link was restored
     assert_symlink "$TEST_HOME/.tmux.conf.bak" "/dev/null"
@@ -142,21 +142,21 @@ test_backup() {
 test_backup_safety() {
     echo "Running Test Case: Backup Safety..."
     setup
-    
+
     # Run 1: Clean Installation
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Run 2: Trigger a backup (creates .tmux.conf.bak)
     rm "$TEST_HOME/.tmux.conf"
     ln -s /dev/null "$TEST_HOME/.tmux.conf"
-    HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null
+    HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null
 
     # Modify link again (so it needs backup again)
     rm "$TEST_HOME/.tmux.conf"
     ln -s /dev/null "$TEST_HOME/.tmux.conf"
 
     # Run 3: Install again, it should FAIL because .tmux.conf.bak already exists
-    if HOME="$TEST_HOME" "$TEST_DIR/install.sh" > /dev/null 2>&1; then
+    if HOME="$TEST_HOME" "$TEST_DIR/install.sh" >/dev/null 2>&1; then
         echo "FAIL: install.sh should have failed because backup already exists"
         exit 1
     else

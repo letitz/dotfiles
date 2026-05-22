@@ -1,0 +1,5 @@
+# Enforce Bash dialect for static analysis
+shell=bash
+
+# Enable all optional shellcheck checks
+enable=all

@@ -3,7 +3,7 @@
 set -e
 
 # Get the directory of this script (top-level constant)
-DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # --- Helper Functions ---
 
@@ -52,7 +52,7 @@ update_file_with_block() {
         echo "[+] Updating $target_file (removing existing block)..."
         local esc_start=$(escape_for_sed "$start_marker")
         local esc_end=$(escape_for_sed "$end_marker")
-        
+
         sed -i "/$esc_start/,/$esc_end/d" "$target_file"
     else
         echo "[+] Configuring $target_file (appending block)..."
@@ -64,13 +64,13 @@ update_file_with_block() {
     if [ -s "$target_file" ]; then
         local last_line=$(tail -n 1 "$target_file")
         if [ -n "$last_line" ]; then
-            echo "" >> "$target_file"
+            echo "" >>"$target_file"
         fi
     fi
 
-    echo "$start_marker" >> "$target_file"
-    cat "$source_file" >> "$target_file"
-    echo "$end_marker" >> "$target_file"
+    echo "$start_marker" >>"$target_file"
+    cat "$source_file" >>"$target_file"
+    echo "$end_marker" >>"$target_file"
 }
 
 # Resolves a dotfiles template by name, expands its {{DOTFILES_DIR}} placeholders
@@ -96,7 +96,7 @@ update_file_with_template() {
 
     # Store expanded template under the same name inside the central temp dir
     local temp_block_file="$temp_dir/$template_name"
-    sed "s|{{DOTFILES_DIR}}|$DOTFILES_DIR|g" "$template_path" > "$temp_block_file"
+    sed "s|{{DOTFILES_DIR}}|$DOTFILES_DIR|g" "$template_path" >"$temp_block_file"
 
     update_file_with_block "$target_file" "$temp_block_file" "$comment_prefix"
 
