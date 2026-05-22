@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+shopt -s inherit_errexit
 
 # Get the directory of this script (top-level constant)
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -15,10 +16,10 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # Outputs:
 #   The escaped string to stdout.
 escape_for_sed() {
-    local str="$1"
+    local str="${1}"
     # Use printf instead of echo to safely handle arbitrary strings
     # (e.g., leading hyphens or backslashes) without option expansion.
-    printf '%s\n' "$str" | sed 's/[^^$*.[\]]/\\&/g'
+    printf '%s\n' "${str}" | sed 's/[^^$*.[\]]/\\&/g'
 }
 
 # Safely writes or updates a block of configuration text inside a target file.
@@ -31,46 +32,51 @@ escape_for_sed() {
 #   $2 - Source file path containing the block content (no markers).
 #   $3 - Comment prefix used for the target file (e.g., '#' for Bash, '"' for Vim).
 update_file_with_block() {
-    local target_file="$1"
-    local source_file="$2"
-    local comment_prefix="$3"
+    local target_file="${1}"
+    local source_file="${2}"
+    local comment_prefix="${3}"
 
-    local start_marker="$comment_prefix --- Added by dotfiles install.sh (START) ---"
-    local end_marker="$comment_prefix --- Added by dotfiles install.sh (END) ---"
+    local start_marker="${comment_prefix} --- Added by dotfiles install.sh (START) ---"
+    local end_marker="${comment_prefix} --- Added by dotfiles install.sh (END) ---"
 
     # Ensure target directory exists
-    mkdir -p "$(dirname "$target_file")"
+    mkdir -p "$(dirname "${target_file}")"
 
     # Step 1: If target file does not exist, touch it (create it empty)
-    if [ ! -f "$target_file" ]; then
-        echo "[+] Creating $target_file..."
-        touch "$target_file"
+    if [[ ! -f "${target_file}" ]]; then
+        echo "[+] Creating ${target_file}..."
+        touch "${target_file}"
     fi
 
     # Step 2: If the block is already present, delete it
-    if grep -qF "$start_marker" "$target_file"; then
-        echo "[+] Updating $target_file (removing existing block)..."
-        local esc_start=$(escape_for_sed "$start_marker")
-        local esc_end=$(escape_for_sed "$end_marker")
+    if grep -qF "${start_marker}" "${target_file}"; then
+        echo "[+] Updating ${target_file} (removing existing block)..."
+        local esc_start
+        esc_start=$(escape_for_sed "${start_marker}")
+        local esc_end
+        esc_end=$(escape_for_sed "${end_marker}")
 
-        sed -i "/$esc_start/,/$esc_end/d" "$target_file"
+        sed -i "/${esc_start}/,/${esc_end}/d" "${target_file}"
     else
-        echo "[+] Configuring $target_file (appending block)..."
+        echo "[+] Configuring ${target_file} (appending block)..."
     fi
 
     # Step 3: Centralized step to append the new block wrapped in markers
     # Ensure there is a newline before the block if the file is not empty,
     # but only if the last line doesn't already end the file with an empty line.
-    if [ -s "$target_file" ]; then
-        local last_line=$(tail -n 1 "$target_file")
-        if [ -n "$last_line" ]; then
-            echo "" >>"$target_file"
+    if [[ -s "${target_file}" ]]; then
+        local last_line
+        last_line=$(tail -n 1 "${target_file}")
+        if [[ -n "${last_line}" ]]; then
+            echo "" >>"${target_file}"
         fi
     fi
 
-    echo "$start_marker" >>"$target_file"
-    cat "$source_file" >>"$target_file"
-    echo "$end_marker" >>"$target_file"
+    {
+        echo "${start_marker}"
+        cat "${source_file}"
+        echo "${end_marker}"
+    } >>"${target_file}"
 }
 
 # Resolves a dotfiles template by name, expands its {{DOTFILES_DIR}} placeholders
@@ -83,24 +89,24 @@ update_file_with_block() {
 #   $3 - Comment prefix used for the target file (e.g., '#').
 #   $4 - Path to the temporary installation directory.
 update_file_with_template() {
-    local target_file="$1"
-    local template_name="$2"
-    local comment_prefix="$3"
-    local temp_dir="$4"
+    local target_file="${1}"
+    local template_name="${2}"
+    local comment_prefix="${3}"
+    local temp_dir="${4}"
 
-    local template_path="$DOTFILES_DIR/templates/$template_name"
-    if [ ! -f "$template_path" ]; then
-        echo "[-] Error: Template $template_name not found at $template_path"
+    local template_path="${DOTFILES_DIR}/templates/${template_name}"
+    if [[ ! -f "${template_path}" ]]; then
+        echo "[-] Error: Template ${template_name} not found at ${template_path}"
         exit 1
     fi
 
     # Store expanded template under the same name inside the central temp dir
-    local temp_block_file="$temp_dir/$template_name"
-    sed "s|{{DOTFILES_DIR}}|$DOTFILES_DIR|g" "$template_path" >"$temp_block_file"
+    local temp_block_file="${temp_dir}/${template_name}"
+    sed "s|{{DOTFILES_DIR}}|${DOTFILES_DIR}|g" "${template_path}" >"${temp_block_file}"
 
-    update_file_with_block "$target_file" "$temp_block_file" "$comment_prefix"
+    update_file_with_block "${target_file}" "${temp_block_file}" "${comment_prefix}"
 
-    rm "$temp_block_file"
+    rm "${temp_block_file}"
 }
 
 # Creates a symlink pointing to a source target. If a file, directory, or
@@ -112,30 +118,32 @@ update_file_with_template() {
 #   $1 - The source path (what the symlink points to).
 #   $2 - The target symlink path (where the symlink is created).
 create_symlink() {
-    local source="$1"
-    local target="$2"
+    local source="${1}"
+    local target="${2}"
 
     # If target exists (as file, dir, or symlink)
-    if [ -e "$target" ] || [ -L "$target" ]; then
+    if [[ -e "${target}" ]] || [[ -L "${target}" ]]; then
         # If it is already a symlink pointing to the correct source, we are done.
-        if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
-            echo "[i] Symlink $target already points to $source"
+        local current_link
+        current_link=$(readlink "${target}" || true)
+        if [[ -L "${target}" ]] && [[ "${current_link}" = "${source}" ]]; then
+            echo "[i] Symlink ${target} already points to ${source}"
             return
         fi
 
         # Otherwise, we need to back it up and replace it.
-        echo "[!] Warning: $target exists. Backing up to ${target}.bak"
-        if [ -e "${target}.bak" ] || [ -L "${target}.bak" ]; then
+        echo "[!] Warning: ${target} exists. Backing up to ${target}.bak"
+        if [[ -e "${target}.bak" ]] || [[ -L "${target}.bak" ]]; then
             echo "[-] Error: Backup ${target}.bak already exists. Manual intervention required."
             exit 1
         fi
-        mv "$target" "${target}.bak"
+        mv "${target}" "${target}.bak"
     fi
 
     # Now create the symlink
-    echo "[+] Creating symlink $target -> $source"
-    mkdir -p "$(dirname "$target")"
-    ln -s "$source" "$target"
+    echo "[+] Creating symlink ${target} -> ${source}"
+    mkdir -p "$(dirname "${target}")"
+    ln -s "${source}" "${target}"
 }
 
 # Downloads a file to the specified target path if it does not already exist.
@@ -145,15 +153,15 @@ create_symlink() {
 #   $2 - The target file path.
 #   $3 - A description for log messages (e.g., "Vim colorscheme").
 download_file() {
-    local url="$1"
-    local target_path="$2"
-    local description="$3"
+    local url="${1}"
+    local target_path="${2}"
+    local description="${3}"
 
-    if [ ! -f "$target_path" ]; then
-        echo "[+] Downloading $description..."
-        curl -sSLo "$target_path" --create-dirs "$url"
+    if [[ ! -f "${target_path}" ]]; then
+        echo "[+] Downloading ${description}..."
+        curl -sSLo "${target_path}" --create-dirs "${url}"
     else
-        echo "[i] $description already downloaded."
+        echo "[i] ${description} already downloaded."
     fi
 }
 
@@ -165,16 +173,16 @@ download_file() {
 #   $2 - The destination file path.
 #   $3 - A description for log messages (e.g., "Vim colorscheme").
 copy_file() {
-    local src="$1"
-    local dest="$2"
-    local description="$3"
+    local src="${1}"
+    local dest="${2}"
+    local description="${3}"
 
-    if [ ! -f "$dest" ]; then
-        echo "[+] Installing $description..."
-        mkdir -p "$(dirname "$dest")"
-        cp "$src" "$dest"
+    if [[ ! -f "${dest}" ]]; then
+        echo "[+] Installing ${description}..."
+        mkdir -p "$(dirname "${dest}")"
+        cp "${src}" "${dest}"
     else
-        echo "[i] $description already installed."
+        echo "[i] ${description} already installed."
     fi
 }
 
@@ -182,9 +190,12 @@ copy_file() {
 # /tmp/dotfiles-install.* to clean up both the active installation temp
 # directory and any pre-existing stale directories.
 cleanup_temp_dirs() {
+
     for temp_dir in /tmp/dotfiles-install.*; do
-        echo "[i] Removing temporary directory: $temp_dir"
-        rm -rf "$temp_dir"
+        if [[ -d "${temp_dir}" ]]; then
+            echo "[i] Removing temporary directory: ${temp_dir}"
+            rm -rf "${temp_dir}"
+        fi
     done
 }
 
@@ -196,10 +207,10 @@ cleanup_temp_dirs() {
 # Arguments:
 #   $1 - Path to the temporary installation directory.
 configure_bash() {
-    local temp_dir="$1"
+    local temp_dir="${1}"
     echo "[+] Configuring Bash..."
-    local BASHRC="$HOME/.bashrc"
-    update_file_with_template "$BASHRC" "bashrc" "#" "$temp_dir"
+    local BASHRC="${HOME}/.bashrc"
+    update_file_with_template "${BASHRC}" "bashrc" "#" "${temp_dir}"
 }
 
 # Configures Vim by copying the centrally downloaded colorscheme file and
@@ -209,14 +220,14 @@ configure_bash() {
 # Arguments:
 #   $1 - Path to the temporary installation directory.
 configure_vim() {
-    local temp_dir="$1"
+    local temp_dir="${1}"
     echo "[+] Configuring Vim..."
-    local colorscheme_source="$temp_dir/gruvbox8_hard.vim"
-    local VIM_COLOR_FILE="$HOME/.vim/colors/gruvbox8_hard.vim"
-    copy_file "$colorscheme_source" "$VIM_COLOR_FILE" "Vim colorscheme"
+    local colorscheme_source="${temp_dir}/gruvbox8_hard.vim"
+    local VIM_COLOR_FILE="${HOME}/.vim/colors/gruvbox8_hard.vim"
+    copy_file "${colorscheme_source}" "${VIM_COLOR_FILE}" "Vim colorscheme"
 
-    local VIMRC="$HOME/.vimrc"
-    update_file_with_template "$VIMRC" "vimrc" "\"" "$temp_dir"
+    local VIMRC="${HOME}/.vimrc"
+    update_file_with_template "${VIMRC}" "vimrc" "\"" "${temp_dir}"
 }
 
 # Configures Neovim by symlinking the repository's nvim configuration folder
@@ -225,28 +236,31 @@ configure_vim() {
 # Arguments:
 #   $1 - Path to the temporary installation directory.
 configure_neovim() {
-    local temp_dir="$1"
+    local temp_dir="${1}"
     echo "[+] Configuring Neovim..."
-    create_symlink "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
+    create_symlink "${DOTFILES_DIR}/nvim" "${HOME}/.config/nvim"
 
-    local colorscheme_source="$temp_dir/gruvbox8_hard.vim"
-    local NVIM_COLOR_FILE="$HOME/.local/share/nvim/site/colors/gruvbox8_hard.vim"
-    copy_file "$colorscheme_source" "$NVIM_COLOR_FILE" "Neovim colorscheme"
+    local colorscheme_source="${temp_dir}/gruvbox8_hard.vim"
+    local NVIM_COLOR_FILE="${HOME}/.local/share/nvim/site/colors/gruvbox8_hard.vim"
+    copy_file "${colorscheme_source}" "${NVIM_COLOR_FILE}" "Neovim colorscheme"
 }
 
 # Configures Tmux by cloning the Tmux Plugin Manager (TPM) if it's missing
 # and symlinking the repository's tmux.conf to ~/.tmux.conf.
+#
+# Arguments:
+#   $1 - Path to the temporary installation directory.
 configure_tmux() {
     echo "[+] Configuring Tmux..."
-    local TPM_DIR="$HOME/.tmux/plugins/tpm"
-    if [ ! -d "$TPM_DIR" ]; then
+    local TPM_DIR="${HOME}/.tmux/plugins/tpm"
+    if [[ ! -d "${TPM_DIR}" ]]; then
         echo "[+] Cloning Tmux Plugin Manager..."
-        git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+        git clone https://github.com/tmux-plugins/tpm "${TPM_DIR}"
     else
         echo "[i] TPM already installed."
     fi
 
-    create_symlink "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
+    create_symlink "${DOTFILES_DIR}/tmux.conf" "${HOME}/.tmux.conf"
 }
 
 # Prints a completion message listing all remaining manual installation steps
@@ -269,20 +283,21 @@ print_completion_message() {
 # Arguments:
 #   $@ - Optional arguments passed to the script.
 main() {
-    echo "[+] Installing dotfiles from $DOTFILES_DIR"
+    echo "[+] Installing dotfiles from ${DOTFILES_DIR}"
 
     # Create a temporary directory in /tmp for central downloads
-    local temp_download_dir=$(mktemp -d -t dotfiles-install.XXXXXX)
-    echo "[i] Created temporary directory: $temp_download_dir"
+    local temp_download_dir
+    temp_download_dir=$(mktemp -d -t dotfiles-install.XXXXXX)
+    echo "[i] Created temporary directory: ${temp_download_dir}"
 
     # Download colorscheme once to the temp directory
     local colorscheme_url="https://raw.githubusercontent.com/lifepillar/vim-gruvbox8/master/colors/gruvbox8_hard.vim"
-    local colorscheme_temp="$temp_download_dir/gruvbox8_hard.vim"
-    download_file "$colorscheme_url" "$colorscheme_temp" "Vim colorscheme"
+    local colorscheme_temp="${temp_download_dir}/gruvbox8_hard.vim"
+    download_file "${colorscheme_url}" "${colorscheme_temp}" "Vim colorscheme"
 
-    configure_bash "$temp_download_dir"
-    configure_vim "$temp_download_dir"
-    configure_neovim "$temp_download_dir"
+    configure_bash "${temp_download_dir}"
+    configure_vim "${temp_download_dir}"
+    configure_neovim "${temp_download_dir}"
     configure_tmux
 
     cleanup_temp_dirs
