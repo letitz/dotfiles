@@ -1,0 +1,9 @@
+# Use vim for editing.
+export VISUAL="vim"
+export EDITOR="${VISUAL}"
+
+# Better prompt.
+source {{DOTFILES_DIR}}/prompt.sh
+
+# Add utility scripts
+export PATH=$PATH:{{DOTFILES_DIR}}/bin

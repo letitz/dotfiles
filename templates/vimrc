@@ -1,0 +1,2 @@
+" Load configuration plugins from central dotfiles.
+set runtimepath^={{DOTFILES_DIR}}/vim

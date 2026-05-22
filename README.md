@@ -1,13 +1,31 @@
 # Setup
 
-First, clone this repository into `~/dotfiles`.
+First, clone this repository.
 
-If your terminal does not support true colors, but supports 256 colors (as is
-for example the case with mosh 1.3.2), switch to the `lesscolors` branch:
+## Automatic Installation
+
+You can automate the installation of bash, vim, neovim, and tmux configurations by running:
 
 ```sh
-$ git switch lesscolors
+$ make install
 ```
+
+This runs `./install.sh` under the hood.
+
+You can also run sandboxed tests to verify the installation logic before applying it:
+
+```sh
+$ make test # or simply `make`
+```
+
+After running the script, you still need to perform these manual steps:
+1. Run `tmux` and press `Ctrl-A I` to install plugins.
+2. Install the [Hack font](https://github.com/source-foundry/Hack) (recommended for gnome-terminal).
+3. Apply the gruvbox8 theme to gnome-terminal (see below).
+
+## Manual Installation
+
+If you prefer to configure everything manually, follow the sections below.
 
 ## Configure bash
 
