@@ -53,6 +53,19 @@ assert_contains() {
     fi
 }
 
+# Asserts expected files exist and contain setup markers.
+assert_expected_end_state() {
+    assert_contains "${TEST_HOME}/.bashrc" "# --- Added by dotfiles install.sh (START) ---"
+    assert_contains "${TEST_HOME}/.bashrc" "source ${TEST_DIR}/prompt.sh"
+    assert_contains "${TEST_HOME}/.vimrc" "set runtimepath^=${TEST_DIR}/vim"
+    assert_exists "${TEST_HOME}/.vim/colors/gruvbox8_hard.vim"
+    assert_symlink "${TEST_HOME}/.config/nvim" "${TEST_DIR}/nvim"
+    assert_exists "${TEST_HOME}/.local/share/nvim/site/colors/gruvbox8_hard.vim"
+    assert_exists "${TEST_HOME}/.tmux/plugins/tpm"
+    assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
+    assert_symlink "${TEST_HOME}/.local/share/org.gnome.Ptyxis/palettes/gruvbox8.palette" "${TEST_DIR}/gruvbox8.palette"
+}
+
 # --- Test Cases ---
 
 # Verifies a clean installation of the dotfiles setup on a fresh user environment.
@@ -65,15 +78,7 @@ test_clean_installation() {
     # Run install
     HOME="${TEST_HOME}" "${TEST_DIR}/install.sh" >/dev/null
 
-    # Assert expected files exist and contain setup markers
-    assert_contains "${TEST_HOME}/.bashrc" "# --- Added by dotfiles install.sh (START) ---"
-    assert_contains "${TEST_HOME}/.bashrc" "source ${TEST_DIR}/prompt.sh"
-    assert_contains "${TEST_HOME}/.vimrc" "set runtimepath^=${TEST_DIR}/vim"
-    assert_exists "${TEST_HOME}/.vim/colors/gruvbox8_hard.vim"
-    assert_symlink "${TEST_HOME}/.config/nvim" "${TEST_DIR}/nvim"
-    assert_exists "${TEST_HOME}/.local/share/nvim/site/colors/gruvbox8_hard.vim"
-    assert_exists "${TEST_HOME}/.tmux/plugins/tpm"
-    assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
+    assert_expected_end_state
 
     echo "[PASS] Clean Installation"
 }
@@ -117,9 +122,7 @@ test_idempotency() {
     # Run 2: Idempotent execution
     HOME="${TEST_HOME}" "${TEST_DIR}/install.sh" >/dev/null
 
-    # Verify everything is still correct
-    assert_symlink "${TEST_HOME}/.config/nvim" "${TEST_DIR}/nvim"
-    assert_symlink "${TEST_HOME}/.tmux.conf" "${TEST_DIR}/tmux.conf"
+    assert_expected_end_state
 
     echo "[PASS] Idempotency"
 }

@@ -247,9 +247,6 @@ configure_neovim() {
 
 # Configures Tmux by cloning the Tmux Plugin Manager (TPM) if it's missing
 # and symlinking the repository's tmux.conf to ~/.tmux.conf.
-#
-# Arguments:
-#   $1 - Path to the temporary installation directory.
 configure_tmux() {
     echo "[+] Configuring Tmux..."
     local TPM_DIR="${HOME}/.tmux/plugins/tpm"
@@ -263,6 +260,14 @@ configure_tmux() {
     create_symlink "${DOTFILES_DIR}/tmux.conf" "${HOME}/.tmux.conf"
 }
 
+# Configures Ptyxis by symlinking the custom palette into the right directory.
+configure_ptyxis() {
+    echo "[+] Configuring Ptyxis..."
+
+    create_symlink "${DOTFILES_DIR}/gruvbox8.palette" \
+        "${HOME}/.local/share/org.gnome.Ptyxis/palettes/gruvbox8.palette"
+}
+
 # Prints a completion message listing all remaining manual installation steps
 # that cannot be safely or reliably automated.
 print_completion_message() {
@@ -270,7 +275,7 @@ print_completion_message() {
     echo "[!] Remaining manual steps:"
     echo "    1. Run tmux and press 'Ctrl-A I' to install plugins."
     echo "    2. Install 'Hack font' manually if needed."
-    echo "    3. Apply gruvbox8 theme to gnome-terminal manually."
+    echo "    3. Choose gruvbox8 theme in Ptyxis manually."
     echo "    4. (Optional) If prompt in tmux is not colored, install 'ncurses-term' package."
 }
 
@@ -299,6 +304,7 @@ main() {
     configure_vim "${temp_download_dir}"
     configure_neovim "${temp_download_dir}"
     configure_tmux
+    configure_ptyxis
 
     cleanup_temp_dirs
 
