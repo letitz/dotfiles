@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+function get_submodule_commit() {
+  local SUBMODULE="$1"
+  git diff "${SUBMODULE}" | grep -- "-Subproject commit" | cut -d " " -f 3
+}
+
+function main() {
+  local SUBMODULE="$1"
+
+  local COMMIT_HASH=$(get_submodule_commit "${SUBMODULE}")
+  pushd "${SUBMODULE}"
+  git checkout "${COMMIT_HASH}"
+  popd
+}
+
+main "$@"
