@@ -3,17 +3,38 @@
 set -e
 
 function get_submodule_commit() {
-  local SUBMODULE="$1"
-  git diff "${SUBMODULE}" | grep -- "-Subproject commit" | cut -d " " -f 3
+  local submodule="$1"
+  git diff "${submodule}" | grep -- "-Subproject commit" | cut -d " " -f 3
+}
+
+function reset_submodule() {
+  local submodule="$1"
+
+  echo "[+] Resetting submodule ${submodule}"
+  local COMMIT_HASH=$(get_submodule_commit "${submodule}")
+
+  pushd "${submodule}"
+  git checkout "${COMMIT_HASH}"
+  popd
+}
+
+function get_unsynced_submodules() {
+  git status | sed -n 's_.*modified: *\(.*\) (new commits).*_\1_p'
 }
 
 function main() {
-  local SUBMODULE="$1"
+  local submodules=()
 
-  local COMMIT_HASH=$(get_submodule_commit "${SUBMODULE}")
-  pushd "${SUBMODULE}"
-  git checkout "${COMMIT_HASH}"
-  popd
+  if [[ "$1" == "-a" || "$1" == "--all" ]]; then
+    # Use process substitution to avoid running mapfile in a subshell.
+    mapfile -t submodules < <(get_unsynced_submodules)
+  else
+    submodules=("$@")
+  fi
+
+  for submodule in "${submodules[@]}"; do
+    reset_submodule "${submodule}"
+  done
 }
 
 main "$@"
